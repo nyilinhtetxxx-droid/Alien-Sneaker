@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alien Sneakers 👟🛸</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Dark green + black responsive theme -->
+  <style>
+    :root {
+      --bg: #000;
+      --fg: #0f0;             /* neon green */
+      --green-dark: #013220;  /* header/footer */
+      --green-accent: #13a813;
+      --white: #fff;
+      --card: #0b0b0b;
+      --border: #1c1c1c;
+      --muted: #9aa09a;
+      --danger: #ff5252;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: Arial, Helvetica, sans-serif; }
+
+    header {
+      background: var(--green-dark);
+      color: var(--white);
+      padding: 0.9rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      position: sticky; top: 0; z-index: 50;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { margin: 0; font-size: 1rem; letter-spacing: 0.4px; }
+
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    nav a {
+      color: var(--fg);
+      text-decoration: none;
+      font-weight: bold;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+    nav a.active { background: var(--card); border: 1px solid var(--border); }
+    .sep { color: var(--muted); }
+
+    .status { font-size: 0.85rem; color: var(--white); white-space: nowrap; }
+    .status .dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      margin-right: 6px; vertical-align: middle; background: var(--danger);
+    }
+    .status.logged-in .dot { background: var(--green-accent); }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 1.25rem; }
+
+    .section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    .section h2 { margin: 0 0 0.75rem; color: var(--white); font-size: 1.2rem; }
+
+    .hero { text-align: center; padding: 2rem 1rem; background: linear-gradient(180deg, #001b12, #000); border: 1px solid var(--border); border-radius: 10px; }
+    .hero h2 { color: var(--white); margin-bottom: 0.5rem; }
+    .hero p { color: var(--muted); margin-bottom: 1rem; }
+
+    .cta, .btn {
+      display: inline-block; background: var(--fg); color: var(--bg); font-weight: bold;
+      padding: 0.55rem 0.9rem; border-radius: 6px; text-decoration: none; border: none; cursor: pointer;
+    }
+    .btn:hover, .cta:hover { background: var(--green-accent); }
+    .btn.outline { background: transparent; color: var(--fg); border: 1px solid var(--fg); }
+    .btn.small { padding: 0.35rem 0.6rem; font-size: 0.85rem; }
+    .btn.danger { background: var(--danger); color: var(--bg); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+    .card { background: #0e120f; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .card img { display: block; width: 100%; height: auto; }
+    .card-content { padding: 0.75rem; text-align: center; }
+    .card h3 { margin: 0.25rem 0; color: var(--white); font-size: 1rem; }
+    .card p { margin: 0.25rem 0; color: var(--muted); font-size: 0.92rem; }
+    .price { color: var(--fg); font-weight: bold; }
+
+    .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    input[type="text"], input[type="email"], input[type="password"], textarea, select {
+      width: 100%; max-width: 420px; background: var(--bg); color: var(--white);
+      border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem;
+    }
+    label { color: var(--white); font-size: 0.9rem; margin-right: 0.5rem; }
+
+    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .col { flex: 1; min-width: 280px; }
+
+    .list { list-style: none; padding-left: 0; }
+    .list li { padding: 0.4rem 0; border-bottom: 1px dashed var(--border); }
+
+    .muted { color: var(--muted); }
+    .right { text-align: right; }
+    .hidden { display: none !important; }
+
+    footer { background: var(--green-dark); color: var(--white); padding: 1rem; text-align: center; border-top: 1px solid var(--border); }
+
+    @media (max-width: 640px) {
+      header { flex-direction: column; align-items: flex-start; }
+      nav { gap: 0.4rem; }
+      .status { margin-top: 0.25rem; }
+      .hero { padding: 1.4rem 0.8rem; }
+    }
+  </style>
+
+  <script>
+    // Simple SPA state (front-end only demo)
+    const state = {
+      user: null,                    // { email }
+      adminWhitelist: ["admin@example.com"], // update with your admin email
+      cart: JSON.parse(localStorage.getItem("alien_cart") || "[]"),
+      products: [
+        { id: "p1", name: "Alien Converse", price: 99, discounted: true, tag: "converse",
+          img: "https://i.etsystatic.com/46645191/r/il/3c6b39/5764188839/il_570xN.5764188839_nfes.jpg" },
+        { id: "p2", name: "Reebok Alien Stomper", price: 120, discounted: false, tag: "reebok",
+          img: "https://www.cnet.com/a/img/resize/1604eeac6813cf4fa56f7985e81a6ed40521b2bc/hub/2017/04/27/b1b2cefd-3d92-4cf8-8a91-eb8babbeba1c/reebokalienstomper.jpg?auto=webp&fit=crop&height=675&width=1200" },
+        { id: "p3", name: "Alien Stomper Vacation Edition", price: 140, discounted: true, tag: "vacation",
+          img: "https://www.cnet.com/a/img/resize/3a9a6013ad936359800f1a4ac3316aebdef3dc1c/hub/2019/04/23/7dcdb4dd-8edd-4231-a6d6-3386ebc3aa62/reebokalienstompers.jpg?auto=webp&fit=crop&height=900&width=1200" },
+        { id: "p4", name: "Alien Platform Sneakers", price: 110, discounted: false, tag: "platform",
+          img: "https://img.drz.lazcdn.com/static/bd/p/4a0bb78912a86a5b8e27715dff3bd7d8.jpg_960x960q80.jpg_.webp" },
+      ],
+      tickets: JSON.parse(localStorage.getItem("alien_tickets") || "[]"),
+    };
+
+    // Helpers
+    const $ = (s) => document.querySelector(s);
+    function saveCart() { localStorage.setItem("alien_cart", JSON.stringify(state.cart)); }
+    function saveTickets() { localStorage.setItem("alien_tickets", JSON.stringify(state.tickets)); }
+    function isAdmin() { return state.user && state.adminWhitelist.includes(state.user.email); }
+    function price(n) { return "$" + n.toFixed(2); }
+
+    // Routing
+    const routes = ["home", "catalogue", "cart", "login", "support", "admin"];
+    function navigate(to) {
+      if (!routes.includes(to)) to = "home";
+      location.hash = "#" + to;
+    }
+    function updateActiveNav() {
+      const current = (location.hash || "#home").slice(1);
+      document.querySelectorAll("nav a").forEach(a => {
+        a.classList.toggle("active", a.getAttribute("href") === "#" + current);
+      });
+    }
+    function showSection(id) {
+      document.querySelectorAll(".route").forEach(s => s.classList.add("hidden"));
+      const el = $("#route-" + id);
+      if (el) el.classList.remove("hidden");
+
+      if (id === "admin") {
+        $("#admin-locked").classList.toggle("hidden", isAdmin());
+        $("#admin-panel").classList.toggle("hidden", !isAdmin());
+      }
+      updateActiveNav();
+    }
+
+    window.addEventListener("hashchange", () => showSection((location.hash || "#home").slice(1)));
+    window.addEventListener("DOMContentLoaded", () => {
+      showSection((location.hash || "#home").slice(1));
+      renderStatus();
+      renderCatalogue();
+      renderCart();
+      renderTickets();
+      bindForms();
+    });
+
+    // Auth (demo, front-end only)
+    function renderStatus() {
+      const status = $("#login-status");
+      status.classList.toggle("logged-in", !!state.user);
+      status.innerHTML = `<span class="dot"></span>${state.user ? "Logged in as " + state.user.email : "Logged out"}`;
+      const prof = $("#profile-summary");
+      if (prof) {
+        prof.innerHTML = state.user
+          ? `<p><strong>Email:</strong> ${state.user.email}</p>`
+          : `<p class="muted">You are not logged in.</p>`;
+      }
+    }
+    function doLogin(email) { state.user = { email }; renderStatus(); alert("Login successful (demo)."); }
+    function doLogout() { state.user = null; renderStatus(); alert("Logged out (demo)."); }
+
+    // Catalogue
+    function renderCatalogue() {
+      const grid = $("#catalogue-grid"); if (!grid) return;
+      const q = ($("#search").value || "").toLowerCase();
+      const onlyDiscount = $("#discount-only").checked;
+
+      const filtered = state.products.filter(p => {
+        const matches = p.name.toLowerCase().includes(q) || p.tag.toLowerCase().includes(q);
+        const discOK = onlyDiscount ? p.discounted : true;
+        return matches && discOK;
+      });
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="card">
+          <img src="${p.img}" alt="${p.name}">
+          <div class="card-content">
+            <h3>${p.name}</h3>
+            <p class="price">${price(p.price)} ${p.discounted ? "<span class='muted'>(discount)</span>" : ""}</p>
+            <div class="row" style="justify-content:center; gap:0.5rem;">
+              <button class="btn small" onclick="addToCart('${p.id}')">Add to cart</button>
+              <button class="btn outline small" onclick="alert('Details for ${p.name}')">Details</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // Cart
+    function renderCart() {
+      const list = $("#cart-list"); const totalEl = $("#cart-total");
+      if (!list || !totalEl) return;
+      const items = state.cart.map(id => state.products.find(p => p.id === id)).filter(Boolean);
+      list.innerHTML = items.length
+        ? items.map(p => `<li>${p.name} — ${price(p.price)} <button class="btn danger small" onclick="removeFromCart('${p.id}')">Remove</button></li>`).join("")
+        : `<li class="muted">Your cart is empty.</li>`;
+      const total = items.reduce((sum, p) => sum + p.price, 0);
+      totalEl.textContent = price(total);
+    }
+    window.addToCart = function(id) {
+      state.cart.push(id); saveCart(); renderCart(); alert("Added to cart.");
+    };
+    window.removeFromCart = function(id) {
+      state.cart = state.cart.filter(x => x !== id); saveCart(); renderCart();
+    };
+    window.checkout = function() {
+      if (!state.user) { alert("Please log in before checkout."); navigate("login"); return; }
+      if (state.cart.length === 0) { alert("Your cart is empty."); return; }
+      alert("Checkout complete! (demo)");
+      state.cart = []; saveCart(); renderCart();
+    };
+
+    // Support tickets (local storage demo)
+    function renderTickets() {
+      const list = $("#ticket-list"); if (!list) return;
+      list.innerHTML = state.tickets.length
+        ? state.tickets.map(t => `<li><strong>${t.type}</strong>: ${t.message} <span class="muted">(${t.email || "guest"})</span></li>`).join("")
+        : `<li class="muted">No tickets yet.</li>`;
+    }
+    window.submitTicket = function() {
+      const type = $("#ticket-type").value.trim();
+      const msg = $("#ticket-message").value.trim();
+      if (!type || !msg) { alert("Please fill out all fields."); return; }
+      state.tickets.push({ type, message: msg, email: state.user ? state.user.email : null, at: Date.now() });
+      saveTickets(); renderTickets();
+      $("#ticket-type").value = "Order issue"; $("#ticket-message").value = "";
+      alert("Ticket submitted (demo).");
+    };
+
+    // Admin demo actions
+    window.adminAddProduct = function() {
+      if (!isAdmin()) return alert("Admin only.");
+      const name = prompt("Product name:"); const priceVal = Number(prompt("Price:"));
+      if (!name || !priceVal) return alert("Invalid input.");
+      const id = "p" + (state.products.length + 1);
+      state.products.push({ id, name, price: priceVal, discounted: false, tag: "custom", img: "https://placehold.co/600x400/0b0b0b/0f0?text="+encodeURIComponent(name) });
+      renderCatalogue(); alert("Product added.");
+    };
+    window.adminToggleDiscounts = function() {
+      if (!isAdmin()) return alert("Admin only.");
+      state.products = state.products.map(p => ({ ...p, discounted: !p.discounted }));
+      renderCatalogue(); alert("Toggled discounts (demo).");
+    };
+
+    // Bind forms and inputs
+    function bindForms() {
+      const search = $("#search"); const disc = $("#discount-only");
+      if (search) search.addEventListener("input", renderCatalogue);
+      if (disc) disc.addEventListener("change", renderCatalogue);
+
+      const loginForm = $("#login-form"); const logoutBtn = $("#logout-btn"); const signupForm = $("#signup-form");
+      if (loginForm) loginForm.addEventListener("submit", (e) => { e.preventDefault(); const email = $("#login-email").value.trim(); const pwd = $("#login-password").value; if (!email || !pwd) return alert("Email and password required."); doLogin(email); });
+      if (signupForm) signupForm.addEventListener("submit", (e) => { e.preventDefault(); const email = $("#signup-email").value.trim(); const pwd = $("#signup-password").value; if (!email || !pwd) return alert("Email and password required."); doLogin(email); alert("Account created (demo)."); });
+      if (logoutBtn) logoutBtn.addEventListener("click", (e) => { e.preventDefault(); doLogout(); });
+    }
+  </script>
+</head>
+
+<body>
+  <header>
+    <h1>Alien Sneakers 👟🛸</h1>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#catalogue">Catalogue</a>
+      <a href="#cart">Cart</a>
+      <a href="#support">Support</a>
+      <a href="#admin">Admin</a>
+      <span class="sep">|</span>
+      <a href="#login">Login</a>
+    </nav>
+    <div id="login-status" class="status"><span class="dot"></span>Loading…</div>
+  </header>
+
+  <main>
+    <!-- Home -->
+    <section id="route-home" class="route">
+      <div class="hero">
+        <h2>Welcome to Alien Sneakers</h2>
+        <p>Explore the galaxy’s freshest kicks. Fast filters, smooth checkout, and a clean dark aesthetic.</p>
+        <button class="cta" onclick="navigate('catalogue')">Shop Now</button>
+      </div>
+
+      <div class="section">
+        <h2>Highlights</h2>
+        <div class="grid">
+          <div class="card">
+            <div class="card-content">
+              <h3>Live search</h3>
+              <p>Filter products by name or tag in real time.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-content">
+              <h3>Discount toggle</h3>
+              <p>Focus on deals with a single switch.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-content">
+              <h3>Responsive layout</h3>
+              <p>Beautiful on mobile, tablet, and desktop.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Catalogue -->
+    <section id="route-catalogue" class="route hidden">
+      <div class="section">
+        <h2>Product catalogue</h2>
+        <div class="controls">
+          <input id="search" type="text" placeholder="Search products or tags…" />
+          <label><input id="discount-only" type="checkbox" /> Discounted only</label>
+        </div>
+        <div id="catalogue-grid" class="grid"></div>
+      </div>
+    </section>
+
+    <!-- Cart -->
+    <section id="route-cart" class="route hidden">
+      <div class="section">
+        <h2>Shopping cart & checkout</h2>
+        <ul id="cart-list" class="list"></ul>
+        <div class="row" style="margin-top:0.5rem;">
+          <div class="col"><span class="muted">Tip: Remove items individually using the red button.</span></div>
+          <div class="col right"><strong>Total:</strong> <span id="cart-total">$0.00</span></div>
+        </div>
+        <div class="row" style="margin-top:0.75rem;">
+          <button class="btn" onclick="checkout()">Checkout</button>
+          <button class="btn outline" onclick="navigate('catalogue')">Continue shopping</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Login & Profile (demo auth) -->
+    <section id="route-login" class="route hidden">
+      <div class="row">
+        <div class="col section">
+          <h2>Log in</h2>
+          <form id="login-form">
+            <label for="login-email">Email</label><br />
+            <input id="login-email" type="email" required /><br /><br />
+            <label for="login-password">Password</label><br />
+            <input id="login-password" type="password" required /><br /><br />
+            <button class="btn" type="submit">Log in</button>
+            <button id="logout-btn" class="btn outline" type="button">Log out</button>
+          </form>
+        </div>
+        <div class="col section">
+          <h2>Sign up</h2>
+          <form id="signup-form">
+            <label for="signup-email">Email</label><br />
+            <input id="signup-email" type="email" required /><br /><br />
+            <label for="signup-password">Password</label><br />
+            <input id="signup-password" type="password" required /><br /><br />
+            <button class="btn" type="submit">Create account</button>
+            <p class="muted" style="margin-top:0.5rem;">Demo only: accounts are local to your session.</p>
+          </form>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Your profile</h2>
+        <div id="profile-summary" class="muted">Loading…</div>
+      </div>
+    </section>
+
+    <!-- Support tickets -->
+    <section id="route-support" class="route hidden">
+      <div class="row">
+        <div class="col section">
+          <h2>Submit a support ticket</h2>
+          <label for="ticket-type">Issue type</label><br />
+          <select id="ticket-type">
+            <option value="Order issue">Order issue</option>
+            <option value="Payment issue">Payment issue</option>
+            <option value="Account access">Account access</option>
+            <option value="Other">Other</option>
+          </select><br /><br />
+          <label for="ticket-message">Message</label><br />
+          <textarea id="ticket-message" rows="4" placeholder="Describe your issue…"></textarea><br /><br />
+          <button class="btn" onclick="submitTicket()">Submit ticket</button>
+          <p class="muted" style="margin-top:0.5rem;">Demo: Tickets are stored locally in your browser.</p>
+        </div>
+        <div class="col section">
+          <h2>My tickets</h2>
+          <ul id="ticket-list" class="list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin dashboard (whitelist demo) -->
+    <section id="route-admin" class="route hidden">
+      <div id="admin-locked" class="section">
+        <h2>Admin dashboard</h2>
+        <p class="muted">Access restricted. Log in with an admin email to continue.</p>
+        <p class="muted">Current admin whitelist: admin@example.com (update in code).</p>
+      </div>
+
+      <div id="admin-panel" class="section hidden">
+        <h2>Site management</h2>
+        <div class="grid">
+          <div class="card"><div class="card-content">
+            <h3>Product management</h3>
+            <p>Add demo products and toggle discounts.</p>
+            <button class="btn small" onclick="adminAddProduct()">Add product</button>
+            <button class="btn outline small" onclick="adminToggleDiscounts()">Toggle discounts</button>
+          </div></div>
+
+          <div class="card"><div class="card-content">
+            <h3>User management</h3>
+            <p>Whitelist emails for admin access (front-end demo).</p>
+          </div></div>
+
+          <div class="card"><div class="card-content">
+            <h3>Order management</h3>
+            <p>Demo checkout clears the cart. Backend required for real orders.</p>
+          </div></div>
+
+          <div class="card"><div class="card-content">
+            <h3>Support tickets</h3>
+            <p>Stored locally. Backend needed for global management.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- <footer>
+    <p>&copy; 2025 Alien Sneakers</p>
+  </footer> -->
+</body>
+</html>
